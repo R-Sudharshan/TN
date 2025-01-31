@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdShield - Detect Suspicious URL</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Submit URL for Suspicious Ad Detection</h1>
+    </header>
+    <div class="container">
+        <form action="/detect" method="POST">
+            <label for="ad_url">Enter URL:</label>
+            <input type="text" id="ad_url" name="ad_url" required>
+            <button type="submit">Analyze URL</button>
+        </form>
+    </div>
+    <footer>
+        <p>&copy; 2025 AdShield. All rights reserved.</p>
+    </footer>
+</body>
+</html>
