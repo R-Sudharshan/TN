@@ -84,7 +84,17 @@ class AdShieldModel:
             text = pytesseract.image_to_string(Image.fromarray(binary))
 
 
-            suspicious_keywords = ["free", "urgent", "limited time offer", "click here", "win", "prize"]
+            suspicious_keywords = [
+    "free", "urgent", "limited time offer", "click here", "win", "prize", "congratulations","claim now", "winner", "lottery", "jackpot", "instant cash", "guaranteed", "exclusive deal",
+    "only today", "special promotion", "act now", "don't miss", "risk-free", "easy money","no investment", "make money fast", "double your income", "work from home", "miracle",
+    "amazing", "unbelievable", "secret", "hidden", "unknown", "shocking", "one-time offer","fast approval", "pre-approved", "zero cost", "extra income", "no risk", "100% free",
+    "instant approval", "low-cost", "discount", "billionaire secret", "as seen on", "VIP","confidential", "guaranteed results", "no credit check", "act fast", "order now", "no catch",
+    "click below", "sign up free", "free gift", "urgent update", "verify account", "account suspended","security alert", "bank notice", "unauthorized transaction", "suspicious activity", "reset password",
+    "dear user", "official notice", "last warning", "identity verification", "update required","confirm your details", "fake invoice", "you have been selected", "limited availability",
+    "hot deal", "lowest price", "hurry up", "100% satisfaction", "guaranteed income", "cash reward","bonus", "earn today", "win big", "get rich", "investment opportunity", "lotto", "you won",
+    "financial freedom", "become a millionaire", "quick money", "easy loan", "no collateral","government grant", "secret investment", "binary options", "crypto giveaway", "urgent payment",
+    "unexpected gift", "claim your funds", "exclusive invitation", "confidential message","this won't last", "high returns", "send money now", "wire transfer", "cheap offer"
+]
             is_suspicious = any(keyword in text.lower() for keyword in suspicious_keywords)
 
             return {"text": text, "is_suspicious": is_suspicious}
