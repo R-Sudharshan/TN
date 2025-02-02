@@ -181,8 +181,15 @@
             </span>
         </div>
 
+        <div class="result-item">
+            <strong>Image Analysis:</strong>
+            <span class="result-icon {{ 'safe' if not image_analysis.is_suspicious else 'suspicious' }}">
+                {{ '✔' if not image_analysis.is_suspicious else '✖' }}
+            </span>
+        </div>
+
         <div class="score {{ 'safe' if score >= 70 else 'suspicious' }}">
-            Safety Score: {{ score }} / 100
+            Scam Likelihood: {{ score }} / 100
         </div>
     </div>
 

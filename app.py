@@ -2,12 +2,17 @@ import os
 import requests
 import base64
 from flask import Flask, render_template, request
+import cv2
+import numpy as np
+import pytesseract
+from PIL import Image
+from io import BytesIO
 
 app = Flask(__name__)
 
 class AdShieldModel:
     def __init__(self):
-        self.api_key_virustotal = os.getenv("VT_API_KEY", "5eae5564b4d8e96f22e6425b03b5a0762f914d44ab488d1e4552dbb4bc4f1015")  # Use environment variables
+        self.api_key_virustotal = os.getenv("VT_API_KEY", "5eae5564b4d8e96f22e6425b03b5a0762f914d44ab488d1e4552dbb4bc4f1015")  
         self.api_key_safebrowsing = os.getenv("GSB_API_KEY", "AIzaSyDuFovmg7VPg59MJQPmTD_iQZOboSw_HAM")
 
     def analyze(self, url: str) -> dict:
@@ -15,7 +20,8 @@ class AdShieldModel:
             "vt_result": self.check_url_with_virustotal(url),
             "phishing_result": self.check_phishing_with_safebrowsing(url),
             "malware_result": self.check_malware_with_safebrowsing(url),
-            "unwanted_software_result": self.check_unwanted_software_with_safebrowsing(url)
+            "unwanted_software_result": self.check_unwanted_software_with_safebrowsing(url),
+            "image_analysis": self.analyze_image(url)
         }
 
     def check_url_with_virustotal(self, url: str) -> dict:
@@ -63,6 +69,28 @@ class AdShieldModel:
     def check_unwanted_software_with_safebrowsing(self, url: str) -> dict:
         return self.check_with_safebrowsing(url, "UNWANTED_SOFTWARE")
 
+    def analyze_image(self, url: str) -> dict:
+        try:
+            response = requests.get(url)
+            image = Image.open(BytesIO(response.content))
+            image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2GRAY)
+
+
+            _, binary = cv2.threshold(image, 150, 255, cv2.THRESH_BINARY_INV)
+
+            contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            
+            text = pytesseract.image_to_string(Image.fromarray(binary))
+
+
+            suspicious_keywords = ["free", "urgent", "limited time offer", "click here", "win", "prize"]
+            is_suspicious = any(keyword in text.lower() for keyword in suspicious_keywords)
+
+            return {"text": text, "is_suspicious": is_suspicious}
+        except Exception as e:
+            return {"error": str(e)}
+
 model = AdShieldModel()
 
 @app.route('/')
@@ -74,10 +102,8 @@ def detect():
     ad_url = request.form.get('ad_url', '')
     results = model.analyze(ad_url)
 
-    
     score = 100.0
 
-    
     vt_result = results["vt_result"]
     if "error" not in vt_result:
         total_engines = sum(vt_result.values())
@@ -86,7 +112,6 @@ def detect():
             suspicious_ratio = vt_result["suspicious"] / total_engines
             score -= malicious_ratio * 40 + suspicious_ratio * 20
 
-    
     if results["phishing_result"].get("matches", False):
         score -= 20
     if results["malware_result"].get("matches", False):
@@ -94,8 +119,11 @@ def detect():
     if results["unwanted_software_result"].get("matches", False):
         score -= 10
 
+    if results["image_analysis"].get("is_suspicious", False):
+        score -= 10
+
     score = max(score, 0)
-    score = round(score, 2)  
+    score = round(score, 2)
 
     results["score"] = score
 
